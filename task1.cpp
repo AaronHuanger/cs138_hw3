@@ -3,7 +3,6 @@
 #include "task1.h"
 int main(int argc, char* argv[]){
     Task1 task1;
-    task1.readInput(argv[1]);
 }
 
 void Task1::readInput(std::string input){
