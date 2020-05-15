@@ -1,0 +1,4 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+F0515 00:14:38.717662 14200 cfg.cc:651] Check failed: parsed_correctly 
+*** Check failure stack trace: ***
+/cs/student/zsisco/bin/mentor: line 4: 14200 Aborted                 (core dumped) $MENTOR_PATH/bin/mentor-cli $1 $2 "$3"
