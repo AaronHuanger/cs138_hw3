@@ -136,9 +136,9 @@ void Task3::varPurge(){
             std::string newVar = "X" + std::to_string(varNumber);
             while(vars.size() > 2){
                 
-                prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[vars.size()-2] + vars[vars.size()-1]}));
-                vars.pop_back();
-                vars.pop_back();
+                prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[0] + vars[1]}));
+                vars.erase(vars.begin());
+                vars.erase(vars.begin());
                 vars.push_back(newVar);
                 varNumber++;
                 newVar = "X" + std::to_string(varNumber);
