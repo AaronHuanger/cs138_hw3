@@ -7,6 +7,7 @@ class Task3{
     public:
         void readInput();
         void readOutput();
+        void mentorOutput();
         std::string substitute(std::string replace, std::string replacer, std::string target);
         std::string termPurge(std::string target);
         void varPurge();

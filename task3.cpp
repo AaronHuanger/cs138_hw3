@@ -39,7 +39,19 @@ void Task3::readInput(){
         std::cout << "\n";
     }*/
 }
-
+void Task3::mentorOutput(){
+    int numProd = 0;
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
+        numProd += it->second.size();
+    }
+    std::cout << numProd <<std::endl;
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
+        for(int i = 0; i < prod.at(it->first).size(); i++){
+            std::cout << it->first << "->";
+            std::cout << prod.at(it->first).at(i) << std::endl;
+        }
+    }
+}
 void Task3::readOutput(){
     int numProd = 0;
     for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
@@ -124,9 +136,9 @@ void Task3::varPurge(){
             std::string newVar = "X" + std::to_string(varNumber);
             while(vars.size() > 2){
                 
-                prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[0] + vars[1]}));
-                vars.erase(vars.begin());
-                vars.erase(vars.begin());
+                prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[vars.size()-2] + vars[vars.size()-1]}));
+                vars.pop_back();
+                vars.pop_back();
                 vars.push_back(newVar);
                 varNumber++;
                 newVar = "X" + std::to_string(varNumber);
