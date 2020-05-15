@@ -23,12 +23,15 @@ void Task3::readInput(){
         rightProd = tempProd.substr(tempProd.find(" ") + 1);
 
         if(prod.find(leftProd) == prod.end()){ //if you cannot find production, make new vector
-            prod.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {termPurge(rightProd)}));
+            prod.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {(rightProd)}));
         }else{
-            prod.at(leftProd).push_back(termPurge(rightProd));
+            prod.at(leftProd).push_back((rightProd));
+        }
+        if(rightProd.length() == 1 && islower(rightProd[0])){
+            singleProds.insert(std::pair<std::string, std::string> (rightProd, leftProd)); // stores single unit productions.
         }
     }
-
+    termPurge();
     varPurge();
     //---------------------------testing purposes------------------------------------------------------------->s
     /*for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
@@ -73,7 +76,7 @@ std::string Task3::substitute(std::string replace, std::string replacer, std::st
     }
     return result;
 }
-
+/*
 std::string Task3::termPurge(std::string target){
     std::vector<std::string> terms;
     std::string temp = target;
@@ -87,7 +90,7 @@ std::string Task3::termPurge(std::string target){
             terms.push_back(temp.substr(i,1));
             /*for(int i = 0; i < terms.size(); i++){
                 std::cout << terms[i] << std::endl;
-            }*/
+            }*/ /*
         }else if(isupper(temp[i])){
             numVar++;
         }
@@ -105,6 +108,59 @@ std::string Task3::termPurge(std::string target){
     }
     //std::cout << "numVar: " << numVar << "numTerm: " << numTerm << std::endl;
     return temp;
+}*/
+void Task3::termPurge(){
+    int varCount = 0; 
+    int termCount = 0;
+    std::string temp;
+    std::vector<std::string> terms;
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){ //gets all the terms that need to be purged
+        for(int i = 0; i < prod.at(it->first).size(); i++){
+            temp = prod.at(it->first).at(i);
+            for(int i = 0; i < temp.length(); i++){
+                if(isdigit(temp[i])){
+                    continue;
+                }else if(islower(temp[i]) || temp.substr(i,1) == "_"){
+                    termCount++;
+                }else if(isupper(temp[i])){
+                    varCount++;
+                }
+                if((varCount > 0 && termCount > 0) || termCount > 2){
+                    terms.push_back(temp.substr(i,1));
+                }
+                termCount =0;
+                varCount = 0;
+            }
+        }
+    }   
+    //term purging begins here
+    std::string leftProd = "";
+    newVar = "X" + std::to_string(varNumber);
+    for(int i = 0; i < terms.size(); i++){
+        if(singleProds.find(terms[i]) != singleProds.end()){
+            leftProd = singleProds.at(terms[i]);
+            if(prod.at(leftProd).size() > 1){
+                leftProd = "";
+            }   
+        }
+        if(leftProd == ""){
+            varNumber++;
+            newVar = "X" + std::to_string(varNumber);
+        }
+        for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){ //gets all the terms that need to be purged
+            for(int i = 0; i < prod.at(it->first).size(); i++){
+                temp = prod.at(it->first).at(i);
+                for(int i = 0; i < temp.length(); i++){
+                    if(temp.substr(i,1) == terms[i]){
+                        if(leftProd != ""){
+                            prod.at(it->first).at(i)
+                        }
+                    }
+                }
+            }
+        }   
+    }
+    
 }
 void Task3::varPurge(){
     std::string digits = "";
@@ -115,7 +171,7 @@ void Task3::varPurge(){
         for(int i = 0; i < prod.at(it->first).size(); i++){
             temp = prod.at(it->first).at(i);
             for(int i = 0; i < temp.length(); i++){
-                if(islower(temp[i])){
+                if(islower(temp[i]) || temp.substr(i,1) == "_"){
                     continue;
                 }else if(isdigit(temp[i])){
                     digits += temp.substr(i,1);
