@@ -10,13 +10,4 @@ void Task1::readInput(std::string input){
     std::istringstream ss(input);
     std::string token;
 
-    getline(ss, token, '\n');
-    int numLine = std::stoi(token); 
-
-    for(int i = 0; i <= numLine; i++){
-        getline(ss, token, '\n');
-        while(getline(ss, token, ' ')){
-            //how to store grammar production 
-        }
-    }
 }
