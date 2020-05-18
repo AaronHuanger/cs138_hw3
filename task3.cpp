@@ -21,7 +21,12 @@ void Task3::readInput(){
         std::getline(std::cin, tempProd);
         leftProd = tempProd.substr(0, tempProd.find(" "));
         rightProd = tempProd.substr(tempProd.find(" ") + 1);
-
+        while(leftProd.find("_") != -1){
+            leftProd.replace(leftProd.find("_"),1,"");
+        }
+        while(rightProd.find("_") != -1){
+            rightProd.replace(rightProd.find("_"),1,"");
+        }
         if(prod.find(leftProd) == prod.end()){ //if you cannot find production, make new vector
             prod.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {termPurge(rightProd)}));
         }else{
