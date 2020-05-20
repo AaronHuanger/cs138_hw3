@@ -11,8 +11,10 @@ int main(int argc, char* argv[]){
 
 void Task3::run(){
     readInput();
-    termPurge();
-    varPurge();
+    while(!isCNF()){
+        termPurge();
+        varPurge();
+    }
     readOutput();
 }
 void Task3::readInput(){
@@ -58,6 +60,29 @@ void Task3::readInput(){
         std::cout << "\n";
     }*/
 }
+bool Task3::isCNF(){
+    bool isCNF = true;
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
+        for(int i = 0; i < it->second.size(); i++){
+            std::string temp = it->second[i];
+            int varCount = 0;
+            int termCount = 0;
+            for(int j = 0; j < temp.length(); j++){ //iterate through every letter of the string
+                if(isdigit(temp[j])){ //do nothing if you see a digit 
+                    continue;
+                }else if(islower(temp[j]) || temp.substr(j,1) == "_"){
+                    termCount++;
+                }else if(isupper(temp[j])){
+                    varCount++;
+                }
+            }
+            if(termCount > 1 || (varCount > 0 && termCount > 0) || varCount > 2){
+                isCNF = false;
+            }
+        }
+    }
+    return isCNF;
+}
 void Task3::mentorOutput(){
     int numProd = 0;
     for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
@@ -78,7 +103,7 @@ void Task3::readOutput(){
     }
     std::cout << numProd <<std::endl;
     for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
-        for(int i = 0; i < prod.at(it->first).size(); i++){
+        for(int i = 0; i < it->second.size(); i++){
             std::cout << it->first << " ";
             std::cout << it->second[i] << std::endl;
         }
@@ -118,7 +143,7 @@ void Task3::termPurge(){
             }
             if(termCount > 1 || (varCount > 0 && termCount >0)){ //replace terminals with variables. 
                 for(std::set<std::string>::iterator its=diffTerms.begin(); its!=diffTerms.end(); ++its){
-                    std::cout << it->second[i] << std::endl;
+                    //std::cout << it->second[i] << std::endl;
                     //it->second[i] = substitute(*its, newVar, it->second[i]);
                     while(it->second[i].find(*its) != -1){
                         it->second[i].replace(it->second[i].find(*its),1, newVar);
@@ -135,15 +160,11 @@ void Task3::termPurge(){
         }
     }
     //error: couldn't transfer vector portion of fix prod into prod correctly.
-    /*//transfer all elements of fixProd to prod
-    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
-        prod.insert(*it);
-        for(int i = 0; i < it->second.size() ; i++)
-            std::cout << "inserting: " << it->first << " -> "<< it->second[i]<< std::endl;
-    }
-    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
-        for(int i = 0; i < it->second.size() ; i++)
-            std::cout << "prod: " << it->first << " -> "<< it->second[i]<< std::endl;
+    //transfer all elements of fixProd to prod
+    /*for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
+        for(int i = 0; i < it->second.size(); i++){
+            if(prod.begin)
+        }
     }*/
 }
 std::string Task3::termPurge(std::string target){
@@ -182,10 +203,11 @@ void Task3::varPurge(){
     std::string digits = "";
     int varCount = 0; 
     std::string temp;
+    std::string newVar;
     std::vector<std::string> vars;
     for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
         for(int i = 0; i < prod.at(it->first).size(); i++){
-            temp = prod.at(it->first).at(i);
+            temp = it->second[i];
             for(int i = 0; i < temp.length(); i++){
                 if(islower(temp[i])){
                     continue;
@@ -205,7 +227,7 @@ void Task3::varPurge(){
                 digits = "";
             }
             varCount = 0;
-            std::string newVar = "X" + std::to_string(varNumber);
+            newVar = "X" + std::to_string(varNumber);
             while(vars.size() > 2){                
                 prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[0] + vars[1]}));
                 vars.erase(vars.begin());

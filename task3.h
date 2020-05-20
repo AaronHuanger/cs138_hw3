@@ -18,6 +18,7 @@ class Task3{
         std::unordered_map<std::string, std::vector<std::string>> fixProd;
         std::unordered_map<std::string, std::vector<std::string>> prod;
         int varNumber = 1;
+        bool isCNF();
 };
 
 #endif
