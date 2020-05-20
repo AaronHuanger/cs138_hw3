@@ -1,14 +1,20 @@
 #include <sstream>
 #include <iostream>
 #include "task3.h"
+#include <set>
 int main(int argc, char* argv[]){
     Task3 task3;
     //std::cout << task3.substitute("A", "D1", "ABA") << std::endl;
     //std::cout << task3.termPurge("aAaAaAaAb") << std::endl;
-    task3.readInput();
-    task3.readOutput();
+    task3.run();
 }
 
+void Task3::run(){
+    readInput();
+    termPurge();
+    varPurge();
+    readOutput();
+}
 void Task3::readInput(){
     int numProd;
     std::string tempProd;
@@ -28,13 +34,17 @@ void Task3::readInput(){
             rightProd.replace(rightProd.find("_"),1,"");
         }
         if(prod.find(leftProd) == prod.end()){ //if you cannot find production, make new vector
-            prod.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {termPurge(rightProd)}));
+            if(rightProd.length() == 1 || (rightProd.length() == 2 && isupper(rightProd[0]) && isupper(rightProd[1]))){
+                prod.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {rightProd}));
+            }
+            fixProd.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {rightProd}));
         }else{
-            prod.at(leftProd).push_back(termPurge(rightProd));
+            if(rightProd.length() == 1 || (rightProd.length() == 2 && isupper(rightProd[0]) && isupper(rightProd[1]))){
+                prod.at(leftProd).push_back((rightProd));
+            }
+            fixProd.at(leftProd).push_back((rightProd));
         }
     }
-
-    varPurge();
     //---------------------------testing purposes------------------------------------------------------------->s
     /*for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
         std::cout << it->first << " => ";
@@ -78,7 +88,52 @@ std::string Task3::substitute(std::string replace, std::string replacer, std::st
     }
     return result;
 }
+void Task3::termPurge(){
+    //std::unordered_map<std::string, std::vector<std::string>> tempProds;
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
+        //go through every element and remove and make it so that any variable that contains more than 1 term or 
+        //contains a terminal along with a variable should be removed. while loop should be implemented in the case
+        //where there are many different terms.
+        for(int i = 0; i < it->second.size(); i++){ //iterate through every right hand side of the string
+            std::string temp = it->second[i];
+            std::set<std::string> diffTerms;
+            int varCount = 0;
+            int termCount = 0;
+            for(int j = 0; j < temp.length(); j++){ //iterate through every letter of the string
+                if(isdigit(temp[j])){ //do nothing if you see a digit 
+                    continue;
+                }else if(islower(temp[j]) || temp.substr(j,1) == "_"){
+                    termCount++;
+                    if(diffTerms.find(temp.substr(j,1)) == diffTerms.end()){
+                        diffTerms.insert(temp.substr(j,1));
+                    }
+                }else if(isupper(temp[j])){
+                    varCount++;
+                }
+            }
+            std::string newVar = "X" + std::to_string(varNumber);
+            if(termCount > 1 || (varCount > 0 && termCount >0)){ //replace terminals with variables. 
+                for(std::set<std::string>::iterator its=diffTerms.begin(); its!=diffTerms.end(); ++its){
+                    it->second[i] = substitute(*its, newVar, it->second[i]);
+                    fixProd.insert(std::pair<std::string, std::vector<std::string>>(newVar, {*its}));
+                    varNumber++;
+                    std::string newVar = "X" + std::to_string(varNumber);
+                }
+            }
+            //reset all count variables;
+            varCount = 0;
+            termCount = 0;
+            diffTerms.clear();
+        }
+    }
+    /*
+    //transfer all elements of fixProd to prod
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
+        prod.insert((*it);
+    }
+    */
 
+}
 std::string Task3::termPurge(std::string target){
     std::vector<std::string> terms;
     std::string temp = target;
@@ -116,9 +171,9 @@ void Task3::varPurge(){
     int varCount = 0; 
     std::string temp;
     std::vector<std::string> vars;
-    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
-        for(int i = 0; i < prod.at(it->first).size(); i++){
-            temp = prod.at(it->first).at(i);
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
+        for(int i = 0; i < fixProd.at(it->first).size(); i++){
+            temp = fixProd.at(it->first).at(i);
             for(int i = 0; i < temp.length(); i++){
                 if(islower(temp[i])){
                     continue;
@@ -140,7 +195,7 @@ void Task3::varPurge(){
             varCount = 0;
             std::string newVar = "X" + std::to_string(varNumber);
             while(vars.size() > 2){                
-                prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[0] + vars[1]}));
+                fixProd.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[0] + vars[1]}));
                 vars.erase(vars.begin());
                 vars.shrink_to_fit();
                 vars[0] = newVar;
@@ -148,9 +203,13 @@ void Task3::varPurge(){
                 newVar = "X" + std::to_string(varNumber);
             }
             if(vars.size() == 2){
-                prod.at(it->first).at(i) = vars[0] + vars[1];
+                fixProd.at(it->first).at(i) = vars[0] + vars[1];
             }
             vars.clear();
         }
+    }
+    //transfer all elements of fixProd to prod
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
+        prod.insert(*it);
     }   
 }
