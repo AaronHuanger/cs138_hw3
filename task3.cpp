@@ -34,7 +34,7 @@ void Task3::readInput(){
             rightProd.replace(rightProd.find("_"),1,"");
         }
         if(prod.find(leftProd) == prod.end()){ //if you cannot find production, make new vector
-            if(rightProd.length() == 1 || (rightProd.length() == 2 && isupper(rightProd[0]) && isupper(rightProd[1]))){
+            /*if(rightProd.length() == 1 || (rightProd.length() == 2 && isupper(rightProd[0]) && isupper(rightProd[1]))){
                 prod.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {rightProd}));
             }
             fixProd.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {rightProd}));
@@ -43,6 +43,10 @@ void Task3::readInput(){
                 prod.at(leftProd).push_back((rightProd));
             }
             fixProd.at(leftProd).push_back((rightProd));
+        }*/
+            prod.insert(std::pair<std::string, std::vector<std::string>>(leftProd, {rightProd}));
+        }else{
+            prod.at(leftProd).push_back((rightProd));
         }
     }
     //---------------------------testing purposes------------------------------------------------------------->s
@@ -76,7 +80,7 @@ void Task3::readOutput(){
     for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
         for(int i = 0; i < prod.at(it->first).size(); i++){
             std::cout << it->first << " ";
-            std::cout << prod.at(it->first).at(i) << std::endl;
+            std::cout << it->second[i] << std::endl;
         }
     }
 }
@@ -89,8 +93,9 @@ std::string Task3::substitute(std::string replace, std::string replacer, std::st
     return result;
 }
 void Task3::termPurge(){
+    std::string newVar = "X" + std::to_string(varNumber);
     //std::unordered_map<std::string, std::vector<std::string>> tempProds;
-    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
         //go through every element and remove and make it so that any variable that contains more than 1 term or 
         //contains a terminal along with a variable should be removed. while loop should be implemented in the case
         //where there are many different terms.
@@ -111,13 +116,16 @@ void Task3::termPurge(){
                     varCount++;
                 }
             }
-            std::string newVar = "X" + std::to_string(varNumber);
             if(termCount > 1 || (varCount > 0 && termCount >0)){ //replace terminals with variables. 
                 for(std::set<std::string>::iterator its=diffTerms.begin(); its!=diffTerms.end(); ++its){
-                    it->second[i] = substitute(*its, newVar, it->second[i]);
-                    fixProd.insert(std::pair<std::string, std::vector<std::string>>(newVar, {*its}));
-                    varNumber++;
-                    std::string newVar = "X" + std::to_string(varNumber);
+                    std::cout << it->second[i] << std::endl;
+                    //it->second[i] = substitute(*its, newVar, it->second[i]);
+                    while(it->second[i].find(*its) != -1){
+                        it->second[i].replace(it->second[i].find(*its),1, newVar);
+                    }
+                    prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {*its}));
+                    ++varNumber;
+                    newVar = "X" + std::to_string(varNumber);
                 }
             }
             //reset all count variables;
@@ -126,13 +134,17 @@ void Task3::termPurge(){
             diffTerms.clear();
         }
     }
-    /*
-    //transfer all elements of fixProd to prod
+    //error: couldn't transfer vector portion of fix prod into prod correctly.
+    /*//transfer all elements of fixProd to prod
     for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
-        prod.insert((*it);
+        prod.insert(*it);
+        for(int i = 0; i < it->second.size() ; i++)
+            std::cout << "inserting: " << it->first << " -> "<< it->second[i]<< std::endl;
     }
-    */
-
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
+        for(int i = 0; i < it->second.size() ; i++)
+            std::cout << "prod: " << it->first << " -> "<< it->second[i]<< std::endl;
+    }*/
 }
 std::string Task3::termPurge(std::string target){
     std::vector<std::string> terms;
@@ -171,9 +183,9 @@ void Task3::varPurge(){
     int varCount = 0; 
     std::string temp;
     std::vector<std::string> vars;
-    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
-        for(int i = 0; i < fixProd.at(it->first).size(); i++){
-            temp = fixProd.at(it->first).at(i);
+    for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=prod.begin(); it!=prod.end(); ++it){
+        for(int i = 0; i < prod.at(it->first).size(); i++){
+            temp = prod.at(it->first).at(i);
             for(int i = 0; i < temp.length(); i++){
                 if(islower(temp[i])){
                     continue;
@@ -195,7 +207,7 @@ void Task3::varPurge(){
             varCount = 0;
             std::string newVar = "X" + std::to_string(varNumber);
             while(vars.size() > 2){                
-                fixProd.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[0] + vars[1]}));
+                prod.insert(std::pair<std::string, std::vector<std::string>>(newVar, {vars[0] + vars[1]}));
                 vars.erase(vars.begin());
                 vars.shrink_to_fit();
                 vars[0] = newVar;
@@ -203,13 +215,13 @@ void Task3::varPurge(){
                 newVar = "X" + std::to_string(varNumber);
             }
             if(vars.size() == 2){
-                fixProd.at(it->first).at(i) = vars[0] + vars[1];
+                prod.at(it->first).at(i) = vars[0] + vars[1];
             }
             vars.clear();
         }
     }
-    //transfer all elements of fixProd to prod
+    /*//transfer all elements of fixProd to prod
     for (std::unordered_map<std::string, std::vector<std::string>>::iterator it=fixProd.begin(); it!=fixProd.end(); ++it){
         prod.insert(*it);
-    }   
+    }   */
 }
